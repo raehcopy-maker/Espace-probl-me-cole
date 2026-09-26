@@ -1,3 +1,4 @@
+import "./admin/admin.css";
 import { useState, useRef } from "react";
 import type { FormEvent, ChangeEvent } from "react";
 import { supabase } from "./lib/supabase";
