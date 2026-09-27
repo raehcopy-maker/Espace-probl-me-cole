@@ -130,7 +130,7 @@ function TrustSection() {
       <div className="trust-grid">
         <article className="trust-card">
           <img
-            src="/images/trust-discussion.jpg"
+            src="/images/trust-discussion.JPG"
             alt="Élève discutant avec un adulte"
           />
           <div className="trust-card-content">
@@ -145,7 +145,7 @@ function TrustSection() {
 
         <article className="trust-card">
           <img
-            src="/images/trust-anonymous.jpg"
+            src="/images/trust-anonymous.JPG"
             alt="Élève utilisant son téléphone"
           />
           <div className="trust-card-content">
@@ -160,7 +160,7 @@ function TrustSection() {
 
         <article className="trust-card">
           <img
-            src="/images/trust-investigation.jpg"
+            src="/images/trust-investigation.JPG"
             alt="Membres du personnel examinant un dossier"
           />
           <div className="trust-card-content">
@@ -182,7 +182,7 @@ function HowItWorksSection() {
     <section id="fonctionnement" className="how-section">
       <div className="how-image">
         <img
-          src="/images/simple-students.jpg"
+          src="/images/simple-students.JPG"
           alt="Élèves dans la cour de l'école"
         />
       </div>
@@ -231,7 +231,7 @@ function FinalMessageSection() {
   return (
     <section className="final-message">
       <img
-        src="/images/final-student.jpg"
+        src="/images/final-student.JPG"
         alt="Élève regardant vers l'avenir"
       />
       <div>
