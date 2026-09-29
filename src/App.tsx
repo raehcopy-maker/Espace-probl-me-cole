@@ -331,10 +331,12 @@ function ReportForm({ onSuccess }: ReportFormProps) {
     setLoading(false);
 
     if (supabaseError) {
-      console.error("Supabase error:", supabaseError);
-      setError("Impossible d'envoyer le signalement. Veuillez réessayer.");
-      return;
-    }
+  console.error("SUPABASE ERROR:", supabaseError);
+
+  setError(`Erreur : ${supabaseError.message}`);
+
+  return;
+}
 
     onSuccess(trackingCode);
   }
