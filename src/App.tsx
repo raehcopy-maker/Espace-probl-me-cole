@@ -1,7 +1,23 @@
+import AdminRoute from "./admin/AdminRoute";
+
 import "./admin/admin.css";
 import { useState, useRef } from "react";
 import type { FormEvent, ChangeEvent } from "react";
 import { supabase } from "./lib/supabase";
+export default function App() {
+  const [reportNumber, setReportNumber] = useState<string | null>(null);
+  const reportSectionRef = useRef<HTMLDivElement>(null);
+
+  const isAdminPage = window.location.pathname.startsWith("/admin");
+
+  const scrollToReport = () => {
+    reportSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // ADMIN ROUTE
+  if (isAdminPage) {
+    return <AdminRoute />;
+  }
 
 // --- TYPES & CONSTANTS ---
 
