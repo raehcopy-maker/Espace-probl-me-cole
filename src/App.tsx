@@ -1,23 +1,9 @@
-import AdminRoute from "./admin/AdminRoute";
 
-import "./admin/admin.css";
 import { useState, useRef } from "react";
 import type { FormEvent, ChangeEvent } from "react";
+import AdminRoute from "./admin/AdminRoute";
 import { supabase } from "./lib/supabase";
-export default function App() {
-  const [reportNumber, setReportNumber] = useState<string | null>(null);
-  const reportSectionRef = useRef<HTMLDivElement>(null);
-
-  const isAdminPage = window.location.pathname.startsWith("/admin");
-
-  const scrollToReport = () => {
-    reportSectionRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  // ADMIN ROUTE
-  if (isAdminPage) {
-    return <AdminRoute />;
-  }
+import "./admin/admin.css";
 
 // --- TYPES & CONSTANTS ---
 
@@ -61,18 +47,19 @@ const INITIAL_FORM_DATA: FormData = {
   urgent: false,
 };
 
-// --- SUB-COMPONENTS ---
+// --- HEADER ---
 
-interface HeaderProps {
+function Header({
+  onScrollToReport,
+}: {
   onScrollToReport: () => void;
-}
-
-function Header({ onScrollToReport }: HeaderProps) {
+}) {
   return (
     <header className="site-header">
       <div className="header-inner">
         <button
           className="brand"
+          type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         >
           <div className="brand-icon">🛡️</div>
@@ -86,7 +73,11 @@ function Header({ onScrollToReport }: HeaderProps) {
           <a href="#accueil">Accueil</a>
           <a href="#confiance">À propos</a>
           <a href="#fonctionnement">Comment ça marche</a>
-          <button className="header-button" onClick={onScrollToReport}>
+          <button
+            className="header-button"
+            type="button"
+            onClick={onScrollToReport}
+          >
             Signaler un problème
           </button>
         </nav>
@@ -94,6 +85,8 @@ function Header({ onScrollToReport }: HeaderProps) {
     </header>
   );
 }
+
+// --- HERO ---
 
 function Hero() {
   return (
@@ -108,10 +101,12 @@ function Hero() {
             <br />
             <span>Parlez-en.</span>
           </h1>
+
           <p className="hero-description">
             Signalez ce qui se passe de manière confidentielle et permettez à
             l'administration d'agir.
           </p>
+
           <div className="security-badge">
             <span>🔒</span>
             <strong>Confidentiel</strong>
@@ -121,12 +116,17 @@ function Hero() {
         </div>
 
         <div className="hero-image">
-          <img src="/images/hero-students.jpg" alt="Élèves dans une école" />
+          <img
+            src="/images/hero-students.jpg"
+            alt="Élèves dans une école"
+          />
         </div>
       </div>
     </section>
   );
 }
+
+// --- TRUST SECTION ---
 
 function TrustSection() {
   return (
@@ -153,8 +153,8 @@ function TrustSection() {
             <div className="trust-icon">👥</div>
             <h3>Vous n'avez pas à avoir peur de parler.</h3>
             <p>
-              Cette plateforme n'est pas conçue pour qu'une seule personne
-              puisse contrôler ou détourner votre signalement.
+              Votre signalement est destiné à être examiné dans un cadre
+              administratif approprié.
             </p>
           </div>
         </article>
@@ -166,10 +166,10 @@ function TrustSection() {
           />
           <div className="trust-card-content">
             <div className="trust-icon">🔐</div>
-            <h3>Votre identité reste séparée du signalement.</h3>
+            <h3>Aucun nom de déclarant n'est demandé.</h3>
             <p>
-              Aucun nom n'est demandé dans ce formulaire. Votre signalement
-              est enregistré sous un code.
+              Ce formulaire ne demande pas votre nom. Votre signalement est
+              enregistré sous un code.
             </p>
           </div>
         </article>
@@ -183,8 +183,8 @@ function TrustSection() {
             <div className="trust-icon">🔎</div>
             <h3>Chaque signalement est examiné.</h3>
             <p>
-              Chaque signalement reçu est examiné afin de déterminer les
-              mesures appropriées.
+              Chaque signalement reçu doit être examiné afin de déterminer
+              les mesures appropriées.
             </p>
           </div>
         </article>
@@ -192,6 +192,8 @@ function TrustSection() {
     </section>
   );
 }
+
+// --- HOW IT WORKS ---
 
 function HowItWorksSection() {
   return (
@@ -243,6 +245,8 @@ function HowItWorksSection() {
   );
 }
 
+// --- FINAL MESSAGE ---
+
 function FinalMessageSection() {
   return (
     <section className="final-message">
@@ -267,18 +271,22 @@ function FinalMessageSection() {
   );
 }
 
-interface SuccessViewProps {
+// --- SUCCESS VIEW ---
+
+function SuccessView({
+  reportNumber,
+  onReset,
+}: {
   reportNumber: string;
   onReset: () => void;
-}
-
-function SuccessView({ reportNumber, onReset }: SuccessViewProps) {
+}) {
   return (
     <main className="success-page">
       <section className="success-card">
         <div className="success-icon">✓</div>
         <p className="eyebrow">SIGNALEMENT REÇU</p>
         <h1>Votre signalement a été envoyé.</h1>
+
         <p className="success-description">
           Merci d'avoir pris le temps de parler. Votre signalement a été transmis
           pour examen.
@@ -294,7 +302,11 @@ function SuccessView({ reportNumber, onReset }: SuccessViewProps) {
           signalement plus tard.
         </p>
 
-        <button className="primary-button" onClick={onReset}>
+        <button
+          className="primary-button"
+          type="button"
+          onClick={onReset}
+        >
           Faire un autre signalement
         </button>
       </section>
@@ -302,25 +314,25 @@ function SuccessView({ reportNumber, onReset }: SuccessViewProps) {
   );
 }
 
-// --- FORM COMPONENT ---
+// --- REPORT FORM ---
 
-interface ReportFormProps {
+function ReportForm({
+  onSuccess,
+}: {
   onSuccess: (trackingCode: string) => void;
-}
-
-function ReportForm({ onSuccess }: ReportFormProps) {
+}) {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleChange = (
     field: keyof FormData,
-    value: string | boolean
+    value: string | boolean,
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  async function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!formData.description.trim()) {
@@ -331,30 +343,39 @@ function ReportForm({ onSuccess }: ReportFormProps) {
     setLoading(true);
     setError("");
 
-    // Generate secure client-side code to avoid SELECT query permissions issues under strict RLS
-    const trackingCode = `SCH-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
+    try {
+      const trackingCode = `SCH-${crypto.randomUUID()
+        .replace(/-/g, "")
+        .slice(0, 8)
+        .toUpperCase()}`;
 
-    const { error: supabaseError } = await supabase.from("reports").insert({
-      tracking_code: trackingCode,
-      category: formData.category,
-      person_involved: formData.person || null,
-      description: formData.description,
-      location: formData.location || null,
-      date_occurred: formData.date || null,
-      urgent: formData.urgent,
-    });
+      const { error: supabaseError } = await supabase
+        .from("reports")
+        .insert({
+          tracking_code: trackingCode,
+          category: formData.category,
+          person_involved: formData.person.trim() || null,
+          description: formData.description.trim(),
+          location: formData.location.trim() || null,
+          date_occurred: formData.date || null,
+          urgent: formData.urgent,
+        });
 
-    setLoading(false);
+      if (supabaseError) {
+        console.error("SUPABASE ERROR:", supabaseError);
+        setError(`Erreur : ${supabaseError.message}`);
+        return;
+      }
 
-    if (supabaseError) {
-  console.error("SUPABASE ERROR:", supabaseError);
-
-  setError(`Erreur : ${supabaseError.message}`);
-
-  return;
-}
-
-    onSuccess(trackingCode);
+      onSuccess(trackingCode);
+    } catch (submissionError) {
+      console.error("REPORT SUBMISSION ERROR:", submissionError);
+      setError(
+        "Une erreur inattendue est survenue. Vérifiez votre connexion et réessayez.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -371,8 +392,11 @@ function ReportForm({ onSuccess }: ReportFormProps) {
         <label htmlFor="category">Catégorie du problème *</label>
         <select
           id="category"
+          required
           value={formData.category}
-          onChange={(e) => handleChange("category", e.target.value as Category)}
+          onChange={(event) =>
+            handleChange("category", event.target.value as Category)
+          }
         >
           {CATEGORIES.map((item) => (
             <option key={item.value} value={item.value}>
@@ -389,10 +413,11 @@ function ReportForm({ onSuccess }: ReportFormProps) {
         <input
           id="person"
           type="text"
+          maxLength={120}
           placeholder="Nom de la personne concernée"
           value={formData.person}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            handleChange("person", e.target.value)
+          onChange={(event: ChangeEvent<HTMLInputElement>) =>
+            handleChange("person", event.target.value)
           }
         />
       </div>
@@ -406,8 +431,8 @@ function ReportForm({ onSuccess }: ReportFormProps) {
           maxLength={1000}
           placeholder="Décrivez le problème aussi clairement que possible..."
           value={formData.description}
-          onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-            handleChange("description", e.target.value)
+          onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+            handleChange("description", event.target.value)
           }
         />
         <div className="character-count">
@@ -421,10 +446,11 @@ function ReportForm({ onSuccess }: ReportFormProps) {
           <input
             id="location"
             type="text"
+            maxLength={150}
             placeholder="Salle, cour, couloir..."
             value={formData.location}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              handleChange("location", e.target.value)
+            onChange={(event: ChangeEvent<HTMLInputElement>) =>
+              handleChange("location", event.target.value)
             }
           />
         </div>
@@ -435,8 +461,8 @@ function ReportForm({ onSuccess }: ReportFormProps) {
             id="date"
             type="date"
             value={formData.date}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              handleChange("date", e.target.value)
+            onChange={(event: ChangeEvent<HTMLInputElement>) =>
+              handleChange("date", event.target.value)
             }
           />
         </div>
@@ -446,8 +472,8 @@ function ReportForm({ onSuccess }: ReportFormProps) {
         <input
           type="checkbox"
           checked={formData.urgent}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            handleChange("urgent", e.target.checked)
+          onChange={(event: ChangeEvent<HTMLInputElement>) =>
+            handleChange("urgent", event.target.checked)
           }
         />
         <span>
@@ -459,14 +485,22 @@ function ReportForm({ onSuccess }: ReportFormProps) {
         </span>
       </label>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="error-message" role="alert">
+          {error}
+        </div>
+      )}
 
-      <button type="submit" className="submit-button" disabled={loading}>
+      <button
+        type="submit"
+        className="submit-button"
+        disabled={loading}
+      >
         {loading ? "Envoi en cours..." : "🛡️ Envoyer le signalement"}
       </button>
 
       <p className="form-footer">
-        🔒 Votre signalement sera enregistré sous un code.
+        🔒 Aucun nom de déclarant n'est demandé dans ce formulaire.
       </p>
     </form>
   );
@@ -478,9 +512,16 @@ export default function App() {
   const [reportNumber, setReportNumber] = useState<string | null>(null);
   const reportSectionRef = useRef<HTMLDivElement>(null);
 
+  const isAdminPage = window.location.pathname.startsWith("/admin");
+
   const scrollToReport = () => {
     reportSectionRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // Render the admin area at /admin.
+  if (isAdminPage) {
+    return <AdminRoute />;
+  }
 
   const handleSuccess = (trackingCode: string) => {
     setReportNumber(trackingCode);
@@ -489,13 +530,16 @@ export default function App() {
 
   const handleReset = () => {
     setReportNumber(null);
-    requestAnimationFrame(() => {
-      scrollToReport();
-    });
+    requestAnimationFrame(() => scrollToReport());
   };
 
   if (reportNumber) {
-    return <SuccessView reportNumber={reportNumber} onReset={handleReset} />;
+    return (
+      <SuccessView
+        reportNumber={reportNumber}
+        onReset={handleReset}
+      />
+    );
   }
 
   return (
@@ -504,7 +548,11 @@ export default function App() {
 
       <Hero />
 
-      <button className="sticky-cta" onClick={scrollToReport}>
+      <button
+        className="sticky-cta"
+        type="button"
+        onClick={scrollToReport}
+      >
         <span>🛡️</span>
         <strong>Signaler un problème</strong>
         <span>→</span>
@@ -534,6 +582,7 @@ export default function App() {
                 Votre signalement reçoit un code.
               </p>
             </div>
+
             <div>
               <span>✓</span>
               <p>
@@ -542,6 +591,7 @@ export default function App() {
                 Chaque signalement reçu est examiné.
               </p>
             </div>
+
             <div>
               <span>✓</span>
               <p>
@@ -568,3 +618,4 @@ export default function App() {
     </main>
   );
 }
+
