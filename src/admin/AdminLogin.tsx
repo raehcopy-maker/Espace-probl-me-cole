@@ -24,11 +24,14 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
       password,
     });
 
-    if (loginError) {
-      setLoading(false);
-      setError("Email ou mot de passe incorrect.");
-      return;
-    }
+    
+if (loginError) {
+  console.error("Supabase login error:", loginError);
+  setLoading(false);
+  setError(`Erreur Supabase : ${loginError.message}`);
+  return;
+}
+
 
     // 2. Check whether the authenticated user is an authorized admin
     const { data: isAdmin, error: adminCheckError } =
