@@ -29,6 +29,15 @@ const categoryLabels: Record<string, string> = {
   autre: "Autre",
 };
 
+
+function normalizePersonName(name: string | null): string {
+  return (name ?? "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase("fr");
+}
+
+
 function formatDate(date: string) {
   return new Date(date).toLocaleString("fr-FR", {
     dateStyle: "medium",
@@ -49,6 +58,28 @@ export default function AdminDashboard({
 
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
+
+  
+const personReportCounts = useMemo(() => {
+  const counts = new Map<string, number>();
+
+  for (const report of reports) {
+    const name = normalizePersonName(report.person_involved);
+
+    if (name) {
+      counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+  }
+
+  return counts;
+}, [reports]);
+
+function getRepeatCount(report: Report): number {
+  const name = normalizePersonName(report.person_involved);
+
+  return name ? personReportCounts.get(name) ?? 0 : 0;
+}
+
 
   async function loadReports() {
     setLoading(true);
@@ -405,10 +436,24 @@ export default function AdminDashboard({
                     )}
                   </div>
 
-                  <h3>
-                    {categoryLabels[report.category] ??
-                      report.category}
-                  </h3>
+                  
+<h3>
+  {categoryLabels[report.category] ??
+    report.category}
+</h3>
+
+{getRepeatCount(report) >= 2 && (
+  <span
+    className={`repeat-report-badge ${
+      getRepeatCount(report) >= 3
+        ? "repeat-report-high"
+        : ""
+    }`}
+  >
+    ⚠️ {getRepeatCount(report)} signalements
+  </span>
+)}
+
 
                   <p>
                     {report.description.length > 90
@@ -447,6 +492,7 @@ export default function AdminDashboard({
               <ReportDetail
                 key={selectedReport.id}
                 report={selectedReport}
+                repeatCount={getRepeatCount(selectedReport)}
                 saving={saving}
                 onSave={updateReport}
               />
@@ -460,6 +506,7 @@ export default function AdminDashboard({
 
 interface ReportDetailProps {
   report: Report;
+  repeatCount: number;
   saving: boolean;
   onSave: (
     reportId: string,
@@ -470,6 +517,7 @@ interface ReportDetailProps {
 
 function ReportDetail({
   report,
+  repeatCount,
   saving,
   onSave,
 }: ReportDetailProps) {
@@ -520,16 +568,37 @@ function ReportDetail({
         </strong>
       </div>
 
-      <div className="detail-section">
-        <span className="detail-label">
-          Personne concernée
-        </span>
+      
+<div className="detail-section">
+  <span className="detail-label">
+    Personne concernée
+  </span>
 
-        <strong>
-          {report.person_involved ||
-            "Non précisée"}
-        </strong>
-      </div>
+  <strong>
+    {report.person_involved || "Non précisée"}
+  </strong>
+</div>
+
+{repeatCount >= 2 && (
+  <div
+    className={`repeat-report-alert ${
+      repeatCount >= 3 ? "repeat-report-high" : ""
+    }`}
+    role="status"
+  >
+    <strong>
+      ⚠️ {repeatCount >= 3
+        ? "Plusieurs signalements à examiner"
+        : "Signalements répétés à examiner"}
+    </strong>
+
+    <p>
+      {repeatCount} signalements mentionnent cette même personne.
+      Vérifiez les dossiers individuellement avant de tirer une conclusion.
+    </p>
+  </div>
+)}
+
 
       <div className="detail-section">
         <span className="detail-label">
