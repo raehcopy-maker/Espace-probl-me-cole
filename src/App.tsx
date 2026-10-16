@@ -50,8 +50,10 @@ const INITIAL_FORM_DATA: FormData = {
 
 function Header({
   onScrollToReport,
+  onTrackReport,
 }: {
   onScrollToReport: () => void;
+  onTrackReport: () => void;
 }) {
   return (
     <header className="site-header">
