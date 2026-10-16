@@ -74,6 +74,13 @@ function Header({
           <a href="#accueil">Accueil</a>
           <a href="#confiance">Notre engagement</a>
           <button
+  type="button"
+  className="header-button"
+  onClick={onTrackReport}
+>
+  Suivre mon signalement
+</button>
+          <button
             className="header-button"
             type="button"
             onClick={onScrollToReport}
@@ -442,10 +449,172 @@ function ReportForm({
   );
 }
 
+// --- REPORT TRACKING PAGE ---
+type TrackedReport = {
+  tracking_code: string;
+  status: string;
+};
+function TrackingView({
+  onBack,
+}: {
+  onBack: () => void;
+}) {
+  const [code, setCode] = useState("");
+  const [report, setReport] = useState<TrackedReport | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const statusInfo: Record<
+    string,
+    { label: string; description: string; step: number }
+  > = {
+    New: {
+      label: "Nouveau",
+      description: "Ton signalement a été reçu et attend son examen.",
+      step: 1,
+    },
+    Investigating: {
+      label: "En cours d'examen",
+      description: "L'administration a commencé à examiner ton signalement.",
+      step: 2,
+    },
+    Resolved: {
+      label: "Traité",
+      description: "Le signalement a été marqué comme traité par l'administration.",
+      step: 3,
+    },
+  };
+  async function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setReport(null);
+    setError("");
+    const normalizedCode = code.trim().toUpperCase();
+    if (!normalizedCode) {
+      setError("Entre ton code de suivi.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data, error: lookupError } = await supabase.rpc(
+        "get_report_progress",
+        { p_tracking_code: normalizedCode },
+      );
+      if (lookupError) {
+        console.error("Tracking lookup error:", lookupError);
+        setError(
+          "Le suivi est momentanément indisponible. Réessaie plus tard.",
+        );
+        return;
+      }
+      const result = (data as TrackedReport[] | null)?.[0];
+      if (!result) {
+        setError(
+          "Aucun signalement trouvé avec ce code. Vérifie les caractères et réessaie.",
+        );
+        return;
+      }
+      setReport(result);
+    } catch (lookupError) {
+      console.error("Tracking error:", lookupError);
+      setError("Une erreur technique est survenue. Réessaie plus tard.");
+    } finally {
+      setLoading(false);
+    }
+  }
+  const currentStatus = report
+    ? statusInfo[report.status] ?? {
+        label: report.status,
+        description: "Le statut de ton signalement a été mis à jour.",
+        step: 1,
+      }
+    : null;
+  return (
+    <main className="success-page tracking-page">
+      <section className="success-card tracking-card">
+        <button
+          type="button"
+          className="tracking-back-button"
+          onClick={onBack}
+        >
+          ← Retour à l'accueil
+        </button>
+        <div className="success-icon">🔎</div>
+        <p className="eyebrow">SUIVI CONFIDENTIEL</p>
+        <h1>Où en est ton signalement ?</h1>
+        <p className="success-description">
+          Entre le code reçu après l'envoi de ton message pour consulter
+          son statut actuel.
+        </p>
+        <form onSubmit={handleSearch} className="tracking-form">
+          <label htmlFor="tracking-code">
+            Ton code de suivi
+          </label>
+          <input
+            id="tracking-code"
+            type="text"
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="Ex. SCH-A1B2C3D4"
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            maxLength={40}
+            required
+          />
+          <button
+            type="submit"
+            className="primary-button"
+            disabled={loading}
+          >
+            {loading ? "Recherche..." : "Consulter le suivi"}
+          </button>
+        </form>
+        {error && (
+          <div className="error-message" role="alert">
+            {error}
+          </div>
+        )}
+        {report && currentStatus && (
+          <div className="tracking-result" aria-live="polite">
+            <div className="report-number">
+              <span>Code du signalement</span>
+              <strong>{report.tracking_code}</strong>
+            </div>
+            <h2>{currentStatus.label}</h2>
+            <p>{currentStatus.description}</p>
+            <div className="tracking-steps">
+              {[
+                { label: "Reçu", step: 1 },
+                { label: "En cours d'examen", step: 2 },
+                { label: "Traité", step: 3 },
+              ].map((item) => (
+                <div
+                  key={item.step}
+                  className={`tracking-step ${
+                    currentStatus.step >= item.step ? "completed" : ""
+                  }`}
+                >
+                  <span>
+                    {currentStatus.step >= item.step ? "✓" : item.step}
+                  </span>
+                  <small>{item.label}</small>
+                </div>
+              ))}
+            </div>
+            <p className="small-text">
+              Pour protéger ta confidentialité, seuls le code et le statut
+              du signalement sont affichés.
+            </p>
+          </div>
+        )}
+      </section>
+    </main>
+  );
+}
+
 // --- MAIN APP COMPONENT ---
 
 export default function App() {
   const [reportNumber, setReportNumber] = useState<string | null>(null);
+  const [showTracking, setShowTracking] = useState(false);
   const reportSectionRef = useRef<HTMLDivElement>(null);
 
   const isAdminPage = window.location.pathname.startsWith("/admin");
@@ -457,6 +626,14 @@ export default function App() {
   if (isAdminPage) {
     return <AdminRoute />;
   }
+
+  if (showTracking) {
+  return (
+    <TrackingView
+      onBack={() => setShowTracking(false)}
+    />
+  );
+}
 
   const handleSuccess = (trackingCode: string) => {
     setReportNumber(trackingCode);
@@ -479,7 +656,10 @@ export default function App() {
 
   return (
     <main>
-      <Header onScrollToReport={scrollToReport} />
+      <Header
+  onScrollToReport={scrollToReport}
+  onTrackReport={() => setShowTracking(true)}
+/>
 
       <Hero onScrollToReport={scrollToReport} />
 
