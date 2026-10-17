@@ -54,14 +54,37 @@ function Header({
 }: {
   onScrollToReport: () => void;
   onTrackReport: () => void;
+}) // --- HEADER ---
+function Header({
+  onScrollToReport,
+  onTrackReport,
+}: {
+  onScrollToReport: () => void;
+  onTrackReport: () => void;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  function closeMenu() {
+    setMenuOpen(false);
+  }
+  function goToReport() {
+    closeMenu();
+    onScrollToReport();
+  }
+  function goToTracking() {
+    closeMenu();
+    onTrackReport();
+  }
   return (
     <header className="site-header">
       <div className="header-inner">
         <button
           className="brand"
           type="button"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          onClick={() => {
+            closeMenu();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+          aria-label="Retour à l'accueil"
         >
           <div className="brand-icon">🛡️</div>
           <div>
@@ -69,21 +92,37 @@ function Header({
             <span>Écoute · Protection · Action</span>
           </div>
         </button>
-
-        <nav className="desktop-nav">
-          <a href="#accueil">Accueil</a>
-          <a href="#confiance">Notre engagement</a>
+        <button
+          className="mobile-menu-toggle"
+          type="button"
+          aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-expanded={menuOpen}
+          aria-controls="site-navigation"
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          {menuOpen ? "✕" : "☰"}
+        </button>
+        <nav
+          id="site-navigation"
+          className={`desktop-nav ${menuOpen ? "mobile-nav-open" : ""}`}
+        >
+          <a href="#accueil" onClick={closeMenu}>
+            Accueil
+          </a>
+          <a href="#confiance" onClick={closeMenu}>
+            Notre engagement
+          </a>
           <button
-  type="button"
-  className="header-button"
-  onClick={onTrackReport}
->
-  Suivre mon signalement
-</button>
+            className="header-button tracking-nav-button"
+            type="button"
+            onClick={goToTracking}
+          >
+            🔎 Suivre mon signalement
+          </button>
           <button
             className="header-button"
             type="button"
-            onClick={onScrollToReport}
+            onClick={goToReport}
           >
             Faire un signalement
           </button>
@@ -92,7 +131,7 @@ function Header({
     </header>
   );
 }
-
+ 
 // --- HERO & IMMEDIATE ACTION ---
 
 function Hero({ onScrollToReport }: { onScrollToReport: () => void }) {
