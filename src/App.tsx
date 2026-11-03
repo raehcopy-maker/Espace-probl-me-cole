@@ -709,7 +709,7 @@ export default function App() {
         onClick={scrollToReport}
       >
         <span>🛡️</span>
-        <strong>Besoin de signaler un problème ? C'est ici</strong>
+        <strong>Signaler un problème </strong>
         <span>→</span>
       </button>
 
