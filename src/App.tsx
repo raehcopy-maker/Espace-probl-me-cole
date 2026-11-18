@@ -156,11 +156,11 @@ function Hero({ onScrollToReport }: { onScrollToReport: () => void }) {
 
           <div className="hero-badges">
             <div className="security-badge">
-              <span>🔒</span>
+            
               <strong>Anonymat garanti</strong>
             </div>
             <div className="security-badge">
-              <span>⚡</span>
+            
               <strong>Pris au sérieux</strong>
             </div>
           </div>
@@ -170,7 +170,7 @@ function Hero({ onScrollToReport }: { onScrollToReport: () => void }) {
             type="button"
             onClick={onScrollToReport}
           >
-            <span>✍️</span> Rédiger mon signalement en 2 minutes →
+             Rédiger mon signalement en 2 minutes 
           </button>
         </div>
 
@@ -701,19 +701,6 @@ export default function App() {
 />
 
       <Hero onScrollToReport={scrollToReport} />
-
-      {/* STICKY CTA */}
-      <button
-        className="sticky-cta"
-        type="button"
-        onClick={scrollToReport}
-      >
-        <span>🛡️</span>
-        <strong>Signaler un problème </strong>
-        <span>→</span>
-      </button>
-
-      {/* REPORT FORM PLACED HIGHER FOR INSTANT UTILITY */}
       <section ref={reportSectionRef} className="report-section highlight-section">
         <div className="report-intro">
           <p className="eyebrow">PASSE À L'ACTION</p>
